@@ -1,0 +1,16 @@
+﻿@page "/theme"
+
+@inject StateService StateService
+
+<h3>Changer le thème</h3>
+
+<p>Thème actuel : @StateService.State.Theme</p>
+<button @onclick="ToggleTheme">Changer de thème</button>
+
+@code {
+    private void ToggleTheme()
+    {
+        var newTheme = StateService.State.Theme == "light" ? "dark" : "light";
+        StateService.SetTheme(newTheme);
+    }
+}

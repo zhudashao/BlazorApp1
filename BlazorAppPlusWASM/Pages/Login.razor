@@ -1,0 +1,33 @@
+﻿@page "/login"
+@inject IStateService StateService
+
+<h3>Login</h3>
+
+@if (StateService.State.IsUserAuthenticated)
+{
+    <p>Bienvenue, utilisateur authentifié !</p>
+    <button @onclick="Logout">Se déconnecter</button>
+}
+else
+{
+    <p>Veuillez vous connecter.</p>
+    <button @onclick="Login1">Se connecter</button>
+}
+
+
+@code {
+    private void Login1()
+    {
+        StateService.SetUserAuthenticated(true);
+    }
+
+    private void Logout()
+    {
+        StateService.SetUserAuthenticated(false);
+    }
+
+    private void Reset()
+    {
+        StateService.Reset();
+    }
+}

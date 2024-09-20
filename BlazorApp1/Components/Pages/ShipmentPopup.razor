@@ -1,0 +1,60 @@
+﻿@code {
+    [Parameter] public Shipment ShipmentToEdit { get; set; }
+    [Parameter] public EventCallback<Shipment> OnShipmentAdded { get; set; }
+    [Parameter] public EventCallback<Shipment> OnShipmentEdited { get; set; }
+    [Parameter] public EventCallback OnClose { get; set; }
+
+    private Shipment currentShipment;
+
+    protected override void OnParametersSet()
+    {
+        if (ShipmentToEdit != null)
+        {
+            // Editing an existing shipment
+            currentShipment = new Shipment
+                {
+                    Id = ShipmentToEdit.Id,
+                    Address = ShipmentToEdit.Address
+                };
+        }
+        else
+        {
+            // Adding a new shipment
+            currentShipment = new Shipment();
+        }
+    }
+
+    private async Task Save()
+    {
+        if (currentShipment.Id == 0)
+        {
+            // Adding a new shipment
+            await OnShipmentAdded.InvokeAsync(currentShipment);
+        }
+        else
+        {
+            // Editing an existing shipment
+            await OnShipmentEdited.InvokeAsync(currentShipment);
+        }
+
+        await OnClose.InvokeAsync();
+    }
+
+    private async Task Cancel()
+    {
+        await OnClose.InvokeAsync();
+    }
+}
+
+<!-- Popup UI -->
+<div class="popup">
+    <div class="popup-content">
+        <h3>@(currentShipment.Id == 0 ? "Add Shipment" : "Edit Shipment")</h3>
+        <div>
+            <label>Address:</label>
+            <input @bind="currentShipment.Address" />
+        </div>
+        <button @onclick="Save">Save</button>
+        <button @onclick="Cancel">Cancel</button>
+    </div>
+</div>

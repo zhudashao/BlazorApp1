@@ -1,0 +1,17 @@
+﻿@page "/"
+@inject IStateService StateService
+
+<PageTitle>Home</PageTitle>
+<h1>Hello, world!</h1>
+
+Welcome to your new app.
+
+<button @onclick="Reset">Reset</button>
+
+@code {
+       private void Reset()
+    {
+        StateService.Reset();
+    }
+}
+

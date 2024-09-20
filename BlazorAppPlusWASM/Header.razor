@@ -1,0 +1,18 @@
+﻿
+@inject IStateService StateService
+
+
+<p>Utilisateur authentifié : @(StateService.State.IsUserAuthenticated ? "Oui" : "Non")</p>
+<p>Thème actuel : @StateService.State.Theme</p>
+
+@code {
+    protected override void OnInitialized()
+    {
+        StateService.OnStateChange += StateHasChanged;
+    }
+
+    public void Dispose()
+    {
+        StateService.OnStateChange -= StateHasChanged;
+    }
+}

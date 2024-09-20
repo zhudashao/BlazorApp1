@@ -1,0 +1,188 @@
+﻿@page "/ymyzon"
+@rendermode InteractiveServer
+@inject AggregateService aggregateService
+
+<PageTitle>Aggregate Object</PageTitle>
+
+@if (loading)
+{
+    <p>Loading data...</p>
+}
+else if (aggregateObject != null)
+{
+    <h3>Aggregate Object</h3>
+
+    <!-- Editable properties -->
+    <div>
+        <p>Property 1: <input @bind="aggregateObject.Property1" @bind:after="OnPropertyChanged" /></p>
+        <p>Property 2: <input @bind="aggregateObject.Property2" @bind:after="OnPropertyChanged" /></p>
+        <p>Property 3: <input @bind="aggregateObject.Property3" @bind:after="OnPropertyChanged" /></p>
+        <p>Property 4: <input @bind="aggregateObject.Property4" @bind:after="OnPropertyChanged" /></p>
+        <p>Property 5: <input @bind="aggregateObject.Property5" @bind:after="OnPropertyChanged" /></p>
+    </div>
+
+    <!-- ComponentA for Orders -->
+    <OrderComponent Orders="aggregateObject.Orders" OnAddOrder="ShowAddOrderPopup"
+                OnRemoveOrder="RemoveOrder" OnEditOrder="ShowEditOrderPopup" />
+
+    <!-- ComponentB for Shipments -->
+    <ShipmentComponent Shipments="aggregateObject.Shipments" OnAddShipment="ShowAddShipmentPopup"
+                OnRemoveShipment="RemoveShipment" OnEditShipment="ShowEditShipmentPopup" />
+}
+
+<!-- OrderPopup Component -->
+@if (showOrderPopup)
+{
+    <OrderPopup OrderToEdit="selectedOrder" OnOrderAdded="AddOrder"
+                OnOrderEdited="EditOrder" OnClose="CloseOrderPopup" />
+}
+
+<!-- ShipmentPopup Component -->
+@if (showShipmentPopup)
+{
+    <ShipmentPopup ShipmentToEdit="selectedShipment" OnShipmentAdded="AddShipment"
+                   OnShipmentEdited="EditShipment" OnClose="CloseShipmentPopup" />
+}
+
+@code {
+    private AggregateObject aggregateObject;
+    private Order selectedOrder;
+    private Shipment selectedShipment;
+    private bool showOrderPopup = false;
+    private bool showShipmentPopup = false;
+    private bool loading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Simulate fetching the aggregateObject
+        aggregateObject = await aggregateService.GetAggregateObjectAsync(1);
+        loading = false;
+    }
+    // Method called after any property has been changed
+    private async Task OnPropertyChanged()
+    {
+        var dto = new AggregateObjectDto(aggregateObject.Id,aggregateObject.Property1, aggregateObject.Property2, aggregateObject.Property3, aggregateObject.Property4, aggregateObject.Property5);
+        await aggregateService.UpdateAggregateObjectAsync(dto);
+    }
+    #region order popup
+    private void ShowAddOrderPopup()
+    {
+        selectedOrder = null; // Clear selection for adding new order
+        showOrderPopup = true;
+    }
+
+    private void ShowEditOrderPopup(Order order)
+    {
+        selectedOrder = order; // Set the order to edit
+        showOrderPopup = true;
+    }
+
+    private void CloseOrderPopup()
+    {
+        showOrderPopup = false;
+    }
+
+    private async Task AddOrder(Order newOrder)
+    {
+        var addOrderDto = new AddOrderDto
+            {
+                AggregateId = 1, // Simulate the aggregate ID
+                Order = newOrder
+            };
+
+        await aggregateService.AddOrderAsync(addOrderDto);
+        aggregateObject.Orders.Add(newOrder); // Update the UI
+        CloseOrderPopup();
+    }
+
+    private async Task EditOrder(Order updatedOrder)
+    {
+        var modifyOrderDto = new ModifyOrderDto
+            {
+                AggregateId = 1, // Simulate the aggregate ID
+                Order = updatedOrder
+            };
+
+        await aggregateService.ModifyOrderAsync(modifyOrderDto);
+        var order = aggregateObject.Orders.First(o => o.Id == updatedOrder.Id);
+        if (order != null)
+        {
+            order.Description = updatedOrder.Description; // Update the UI
+        }
+        CloseOrderPopup();
+    }
+
+    private async Task RemoveOrder(Order order)
+    {
+        var deleteOrderDto = new DeleteOrderDto
+            {
+                AggregateId = 1, // Simulate the aggregate ID
+                OrderId = order.Id
+            };
+
+        await aggregateService.DeleteOrderAsync(deleteOrderDto);
+        aggregateObject.Orders.Remove(order); // Update the UI
+    }
+    #endregion order
+
+    #region shipment
+    private void ShowAddShipmentPopup()
+    {
+        selectedShipment = null; // Clear selection for adding new shipment
+        showShipmentPopup = true;
+    }
+
+    private void ShowEditShipmentPopup(Shipment shipment)
+    {
+        selectedShipment = shipment; // Set the shipment to edit
+        showShipmentPopup = true;
+    }
+
+    private void CloseShipmentPopup()
+    {
+        showShipmentPopup = false;
+    }
+
+    private async Task AddShipment(Shipment newShipment)
+    {
+        var addShipmentDto = new AddShipmentDto
+            {
+                AggregateId = 1, // Simulate the aggregate ID
+                Shipment = newShipment
+            };
+
+        await aggregateService.AddShipmentAsync(addShipmentDto);
+        aggregateObject.Shipments.Add(newShipment); // Update the UI
+        CloseShipmentPopup();
+    }
+
+    private async Task EditShipment(Shipment updatedShipment)
+    {
+        var modifyShipmentDto = new ModifyShipmentDto
+            {
+                AggregateId = 1, // Simulate the aggregate ID
+                Shipment = updatedShipment
+            };
+
+        await aggregateService.ModifyShipmentAsync(modifyShipmentDto);
+        var shipment = aggregateObject.Shipments.First(s => s.Id == updatedShipment.Id);
+        if (shipment != null)
+        {
+            shipment.Address = updatedShipment.Address; // Update the UI
+        }
+        CloseShipmentPopup();
+    }
+
+    private async Task RemoveShipment(Shipment shipment)
+    {
+        var deleteShipmentDto = new DeleteShipmentDto
+            {
+                AggregateId = 1, // Simulate the aggregate ID
+                ShipmentId = shipment.Id
+            };
+
+        await aggregateService.DeleteShipmentAsync(deleteShipmentDto);
+        aggregateObject.Shipments.Remove(shipment); // Update the UI
+    }
+    #endregion shipment
+}

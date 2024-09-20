@@ -1,0 +1,60 @@
+﻿@code {
+    [Parameter] public Order OrderToEdit { get; set; }
+    [Parameter] public EventCallback<Order> OnOrderAdded { get; set; }
+    [Parameter] public EventCallback<Order> OnOrderEdited { get; set; }
+    [Parameter] public EventCallback OnClose { get; set; }
+
+    private Order currentOrder;
+
+    protected override void OnParametersSet()
+    {
+        if (OrderToEdit != null)
+        {
+            // Editing an existing order
+            currentOrder = new Order
+                {
+                    Id = OrderToEdit.Id,
+                    Description = OrderToEdit.Description
+                };
+        }
+        else
+        {
+            // Adding a new order
+            currentOrder = new Order();
+        }
+    }
+
+    private async Task Save()
+    {
+        if (currentOrder.Id == 0)
+        {
+            // Adding a new order
+            await OnOrderAdded.InvokeAsync(currentOrder);
+        }
+        else
+        {
+            // Editing an existing order
+            await OnOrderEdited.InvokeAsync(currentOrder);
+        }
+
+        await OnClose.InvokeAsync();
+    }
+
+    private async Task Cancel()
+    {
+        await OnClose.InvokeAsync();
+    }
+}
+
+<!-- Popup UI -->
+<div class="popup">
+    <div class="popup-content">
+        <h3>@(currentOrder.Id == 0 ? "Add Order" : "Edit Order")</h3>
+        <div>
+            <label>Description:</label>
+            <input @bind="currentOrder.Description" />
+        </div>
+        <button @onclick="Save">Save</button>
+        <button @onclick="Cancel">Cancel</button>
+    </div>
+</div>

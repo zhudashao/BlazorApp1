@@ -1,0 +1,35 @@
+﻿@code {
+    [Parameter] public List<Shipment> Shipments { get; set; }
+    [Parameter] public EventCallback OnAddShipment { get; set; }
+    [Parameter] public EventCallback<Shipment> OnRemoveShipment { get; set; }
+    [Parameter] public EventCallback<Shipment> OnEditShipment { get; set; }
+
+    private void AddShipment()
+    {
+        OnAddShipment.InvokeAsync();
+    }
+
+    private void EditShipment(Shipment shipment)
+    {
+        OnEditShipment.InvokeAsync(shipment);
+    }
+
+    private void RemoveShipment(Shipment shipment)
+    {
+        OnRemoveShipment.InvokeAsync(shipment);
+    }
+}
+
+<div>
+    <button @onclick="AddShipment">Add Shipment</button>
+    <ul>
+        @foreach (var shipment in Shipments)
+        {
+            <li>
+                @shipment.Address
+                <button @onclick="() => EditShipment(shipment)">Edit</button>
+                <button @onclick="() => RemoveShipment(shipment)">Remove</button>
+            </li>
+        }
+    </ul>
+</div>

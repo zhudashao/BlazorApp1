@@ -1,0 +1,35 @@
+﻿@code {
+    [Parameter] public List<Order> Orders { get; set; }
+    [Parameter] public EventCallback OnAddOrder { get; set; }
+    [Parameter] public EventCallback<Order> OnRemoveOrder { get; set; }
+    [Parameter] public EventCallback<Order> OnEditOrder { get; set; }
+
+    private void AddOrder()
+    {
+        OnAddOrder.InvokeAsync();
+    }
+
+    private void EditOrder(Order order)
+    {
+        OnEditOrder.InvokeAsync(order);
+    }
+
+    private void RemoveOrder(Order order)
+    {
+        OnRemoveOrder.InvokeAsync(order);
+    }
+}
+
+<div>
+    <button @onclick="AddOrder">Add Order</button>
+    <ul>
+        @foreach (var order in Orders)
+        {
+            <li>
+                @order.Description
+                <button @onclick="() => EditOrder(order)">Edit</button>
+                <button @onclick="() => RemoveOrder(order)">Remove</button>
+            </li>
+        }
+    </ul>
+</div>

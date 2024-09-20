@@ -1,0 +1,44 @@
+﻿@page "/notifications"
+@inject IStateService StateService
+
+<h3>User Interface</h3>
+
+@if (!string.IsNullOrEmpty(notificationMessage))
+{
+    <div class="alert alert-info">
+        @notificationMessage
+    </div>
+}
+
+<button @onclick="ShowNotification">Show Notification</button>
+
+@code {
+    private string notificationMessage;
+    private Random random = new Random();
+
+    protected override void OnInitialized()
+    {
+        // Abonnement aux changements d'état
+        StateService.OnStateChange += StateHasChanged;
+    }
+
+    private void ShowNotification()
+    {
+        // Définir une notification via le StateService
+        var randomNumber = random.Next(1, 101);
+        StateService.SetNotification($"This is a user notification. {randomNumber}");
+    }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (firstRender) StateHasChanged();
+        // Récupérer la notification à partir de l'état
+        notificationMessage = StateService.State.NotificationMessage;
+    }
+
+    public void Dispose()
+    {
+        // Désabonnement pour éviter les fuites de mémoire
+        StateService.OnStateChange -= StateHasChanged;
+    }
+}
