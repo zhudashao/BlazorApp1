@@ -14,3 +14,13 @@
         </article>
     </main>
 </div>
+
+
+@inject IStateService StateService
+
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        await StateService.LoadStateAsync();
+    }
+}
