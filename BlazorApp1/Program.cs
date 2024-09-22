@@ -1,5 +1,6 @@
-using BlazorApp1.Components;
-using BlazorApp1.Services;
+
+using BlazorApp4AvenantDemo.Components;
+using BlazorApp4AvenantDemo.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 

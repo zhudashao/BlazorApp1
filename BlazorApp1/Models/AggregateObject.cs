@@ -1,4 +1,4 @@
-﻿namespace BlazorApp1.Models;
+﻿namespace BlazorApp4AvenantDemo.Models;
 
 
 public class AggregateObject

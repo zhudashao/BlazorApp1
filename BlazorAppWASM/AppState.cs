@@ -1,4 +1,4 @@
-﻿namespace BlazorAppWASM;
+﻿namespace BlazorAppStandardWASM;
 
 public class AppState
 {

@@ -1,6 +1,6 @@
-﻿using BlazorApp1.Models;
+﻿using BlazorApp4AvenantDemo.Models;
 
-namespace BlazorApp1.Services;
+namespace BlazorApp4AvenantDemo.Services;
 
 public class AggregateService
 {

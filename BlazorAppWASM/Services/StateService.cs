@@ -1,4 +1,4 @@
-﻿namespace BlazorAppWASM.Services;
+﻿namespace BlazorAppStandardWASM.Services;
 
 public class StateService
 {
