@@ -1,4 +1,4 @@
-﻿@page "/ymyzon"
+﻿@* @page "/ymyzon"
 @rendermode InteractiveServer
 @inject AggregateService aggregateService
 
@@ -185,4 +185,276 @@ else if (aggregateObject != null)
         aggregateObject.Shipments.Remove(shipment); // Update the UI
     }
     #endregion shipment
+}
+ *@
+
+@page "/ymyzon"
+@rendermode InteractiveServer
+@inject AggregateService aggregateService
+
+<PageTitle>Aggregate Object</PageTitle>
+
+@if (loading)
+{
+    <p>Loading data...</p>
+}
+else if (aggregateObject != null)
+{
+    <h3>Aggregate Object</h3>
+
+    <!-- Editable properties -->
+    <div>
+        <p>Property 1: <input @bind="aggregateObject.Property1" @bind:after="OnPropertyChanged" /></p>
+        <p>Property 2: <input @bind="aggregateObject.Property2" @bind:after="OnPropertyChanged" /></p>
+        <p>Property 3: <input @bind="aggregateObject.Property3" @bind:after="OnPropertyChanged" /></p>
+        <p>Property 4: <input @bind="aggregateObject.Property4" @bind:after="OnPropertyChanged" /></p>
+        <p>Property 5: <input @bind="aggregateObject.Property5" @bind:after="OnPropertyChanged" /></p>
+    </div>
+
+    <!-- Order Component -->
+    <OrderComponent Orders="aggregateObject.Orders"
+                    OnAddOrder="ShowAddOrderPopup"
+                    OnRemoveOrder="RemoveObject"
+                    OnEditOrder="ShowEditOrderPopup" />
+
+    <!-- Shipment Component -->
+    <ShipmentComponent Shipments="aggregateObject.Shipments"
+                       OnAddShipment="ShowAddShipmentPopup"
+                       OnRemoveShipment="RemoveObject"
+                       OnEditShipment="ShowEditShipmentPopup" />
+}
+
+<!-- Popup for Editing/Adding Order or Shipment -->
+@if (showPopup)
+{
+    switch (selectedObjectType)
+    {
+        case Type t when t == typeof(Order):
+            <OrderPopup OrderToEdit="(Order)selectedObject"
+                        OnOrderAdded="AddObject"
+                        OnOrderEdited="EditObject"
+                        OnClose="ClosePopup" />
+            break;
+
+        case Type t when t == typeof(Shipment):
+            <ShipmentPopup ShipmentToEdit="(Shipment)selectedObject"
+                           OnShipmentAdded="AddObject"
+                           OnShipmentEdited="EditObject"
+                           OnClose="ClosePopup" />
+            break;
+
+        default:
+            <p>Unknown object type.</p>
+            break;
+    }
+}
+
+@code {
+    private AggregateObject aggregateObject;
+    private object selectedObject;
+    private Type selectedObjectType;
+    private bool showPopup = false;
+    private bool loading = true;
+
+    // Dictionaries to manage the actions for adding, editing, and removing objects
+    private readonly Dictionary<Type, Func<object, Task>> _addActions;
+    private readonly Dictionary<Type, Func<object, Task>> _editActions;
+    private readonly Dictionary<Type, Func<object, Task>> _removeActions;
+
+    public Page()
+    {
+        _addActions = new Dictionary<Type, Func<object, Task>>
+        {
+            { typeof(Order), async obj => await AddOrder((Order)obj) },
+            { typeof(Shipment), async obj => await AddShipment((Shipment)obj) }
+        };
+
+        _editActions = new Dictionary<Type, Func<object, Task>>
+        {
+            { typeof(Order), async obj => await EditOrder((Order)obj) },
+            { typeof(Shipment), async obj => await EditShipment((Shipment)obj) }
+        };
+
+        _removeActions = new Dictionary<Type, Func<object, Task>>
+        {
+            { typeof(Order), async obj => await RemoveOrder((Order)obj) },
+            { typeof(Shipment), async obj => await RemoveShipment((Shipment)obj) }
+        };
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Simulate fetching data for the aggregate object
+        aggregateObject = await aggregateService.GetAggregateObjectAsync(1);
+        loading = false;
+    }
+
+    // Triggered when a property is changed to update the backend
+    private async Task OnPropertyChanged()
+    {
+        var dto = new AggregateObjectDto(aggregateObject.Id, aggregateObject.Property1, aggregateObject.Property2, aggregateObject.Property3, aggregateObject.Property4, aggregateObject.Property5);
+        await aggregateService.UpdateAggregateObjectAsync(dto);
+    }
+
+    #region Popup logic
+
+    private void ShowPopup<T>(T obj)
+    {
+        selectedObject = obj;
+        selectedObjectType = typeof(T);
+        showPopup = true;
+    }
+
+    private void ShowPopup<T>()
+    {
+        selectedObject = Activator.CreateInstance<T>();
+        selectedObjectType = typeof(T);
+        showPopup = true;
+    }
+
+    private void ClosePopup()
+    {
+        showPopup = false;
+        selectedObject = null;
+        selectedObjectType = null;
+    }
+
+    #endregion
+
+    #region Add, Edit, Remove Actions
+
+    // Generic method to add an object (Order or Shipment)
+    private async Task AddObject(object newObject)
+    {
+        var objectType = newObject.GetType();
+
+        if (_addActions.ContainsKey(objectType))
+        {
+            await _addActions[selectedObjectType](newObject);
+        }
+        else
+        {
+            throw new InvalidOperationException($"Unsupported object type: {selectedObjectType}");
+        }
+
+        ClosePopup();
+    }
+
+    // Generic method to edit an object (Order or Shipment)
+    private async Task EditObject(object updatedObject)
+    {
+        var objectType = updatedObject.GetType();
+
+        if (_editActions.ContainsKey(objectType))
+        {
+            await _editActions[objectType](updatedObject);
+        }
+        else
+        {
+            throw new InvalidOperationException($"Unsupported object type: {objectType}");
+        }
+
+        ClosePopup();
+    }
+
+    // Generic method to remove an object (Order or Shipment)
+    private async Task RemoveObject<T>(T obj)
+    {
+        var objectType = typeof(T);
+
+        if (_removeActions.ContainsKey(objectType))
+        {
+            await _removeActions[objectType](obj);
+        }
+        else
+        {
+            throw new InvalidOperationException($"Unsupported object type: {objectType}");
+        }
+    }
+
+    #endregion
+
+    #region Order-specific methods
+
+    private async Task AddOrder(Order newOrder)
+    {
+        var addOrderDto = new AddOrderDto { AggregateId = 1, Order = newOrder };
+        await aggregateService.AddOrderAsync(addOrderDto);
+        aggregateObject.Orders.Add(newOrder);
+    }
+
+    private async Task EditOrder(Order updatedOrder)
+    {
+        var modifyOrderDto = new ModifyOrderDto { AggregateId = 1, Order = updatedOrder };
+        await aggregateService.ModifyOrderAsync(modifyOrderDto);
+
+        var order = aggregateObject.Orders.FirstOrDefault(o => o.Id == updatedOrder.Id);
+        if (order != null)
+        {
+            order.Description = updatedOrder.Description;
+        }
+    }
+
+    private async Task RemoveOrder(Order order)
+    {
+        var deleteOrderDto = new DeleteOrderDto { AggregateId = 1, OrderId = order.Id };
+        await aggregateService.DeleteOrderAsync(deleteOrderDto);
+        aggregateObject.Orders.Remove(order);
+    }
+
+    #endregion
+
+    #region Shipment-specific methods
+
+    private async Task AddShipment(Shipment newShipment)
+    {
+        var addShipmentDto = new AddShipmentDto { AggregateId = 1, Shipment = newShipment };
+        await aggregateService.AddShipmentAsync(addShipmentDto);
+        aggregateObject.Shipments.Add(newShipment);
+    }
+
+    private async Task EditShipment(Shipment updatedShipment)
+    {
+        var modifyShipmentDto = new ModifyShipmentDto { AggregateId = 1, Shipment = updatedShipment };
+        await aggregateService.ModifyShipmentAsync(modifyShipmentDto);
+
+        var shipment = aggregateObject.Shipments.FirstOrDefault(s => s.Id == updatedShipment.Id);
+        if (shipment != null)
+        {
+            shipment.Address = updatedShipment.Address;
+        }
+    }
+
+    private async Task RemoveShipment(Shipment shipment)
+    {
+        var deleteShipmentDto = new DeleteShipmentDto { AggregateId = 1, ShipmentId = shipment.Id };
+        await aggregateService.DeleteShipmentAsync(deleteShipmentDto);
+        aggregateObject.Shipments.Remove(shipment);
+    }
+
+    #endregion
+
+    #region Popup triggers
+
+    private void ShowAddOrderPopup()
+    {
+        ShowPopup<Order>();
+    }
+
+    private void ShowEditOrderPopup(Order order)
+    {
+        ShowPopup(order);
+    }
+
+    private void ShowAddShipmentPopup()
+    {
+        ShowPopup<Shipment>();
+    }
+
+    private void ShowEditShipmentPopup(Shipment shipment)
+    {
+        ShowPopup(shipment);
+    }
+
+    #endregion
 }
