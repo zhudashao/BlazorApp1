@@ -1,0 +1,34 @@
+﻿@page "/step4"
+@inject FormManagerService FormManager
+@inject NavigationManager NavigationManager
+
+<h3>Step 4: Comments</h3>
+<StepSchemaComponent />
+<label>Comments:</label>
+<textarea @bind="FormManager.Step4Service.Data.Comments" placeholder="Enter your comments"></textarea>
+
+@if (!FormManager.Step4Service.IsStepValid)
+{
+    <p class="error">Step 4 is not valid</p>
+}
+
+<button class="btn btn-primary" @onclick="ValidateStep4">Next: Review and Submit</button>
+<button class="btn btn-secondary" @onclick="GoToPreviousStep">Go Back to Edit</button>
+
+
+@code {
+    private async Task ValidateStep4()
+    {
+        await FormManager.Step4Service.ValidateStep4();
+        if (FormManager.Step4Service.IsStepValid)
+        {
+            // Handle the completion of the form
+            // You could navigate to a summary page or show a success message
+            NavigationManager.NavigateTo("/summary");
+        }
+    }
+    private void GoToPreviousStep()
+    {
+        NavigationManager.NavigateTo("/step3");
+    }
+}

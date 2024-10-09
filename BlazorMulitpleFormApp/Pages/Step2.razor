@@ -1,0 +1,35 @@
+﻿@page "/step2"
+@inject FormManagerService FormManager
+@inject NavigationManager NavigationManager
+
+<h3>Step 2: Address Information</h3>
+<StepSchemaComponent />
+<label>Address:</label>
+<input type="text" @bind="FormManager.Step2Service.Data.Address" placeholder="Address" />
+
+<label>City:</label>
+<input type="text" @bind="FormManager.Step2Service.Data.City" placeholder="City" />
+
+@if (!FormManager.Step2Service.IsStepValid)
+{
+    <p class="error">Step 2 is not valid</p>
+}
+
+<button class="btn btn-primary" @onclick="ValidateStep2">Next</button>
+<button class="btn btn-secondary" @onclick="GoToPreviousStep">Go Back to Edit</button>
+
+@code {
+    private async Task ValidateStep2()
+    {
+        await FormManager.Step2Service.ValidateStep2();
+        if (FormManager.Step2Service.IsStepValid)
+        {
+            // Proceed to Step 3 or navigate to the next step
+            NavigationManager.NavigateTo("/step3");
+        }
+    }
+    private void GoToPreviousStep()
+    {
+        NavigationManager.NavigateTo("/step1");
+    }
+}

@@ -13,7 +13,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BlazorAppPlusWASM", "Blazor
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WebAppSpecExemple", "WebAppSpecExemple\WebAppSpecExemple.csproj", "{B81AA774-059D-43C8-BDD1-EA1017798BB3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BlazorApp4AvenantDemoTests", "BlazorApp4AvenantDemoTests\BlazorApp4AvenantDemoTests.csproj", "{1B0C86CD-DBA9-4330-890C-2863C209B4BB}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BlazorApp4AvenantDemoTests", "BlazorApp4AvenantDemoTests\BlazorApp4AvenantDemoTests.csproj", "{1B0C86CD-DBA9-4330-890C-2863C209B4BB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BlazorMulitpleFormApp", "BlazorMulitpleFormApp\BlazorMulitpleFormApp.csproj", "{B8C3EB9B-D26B-46F7-A2AB-028F6E138D31}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -45,6 +47,10 @@ Global
 		{1B0C86CD-DBA9-4330-890C-2863C209B4BB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1B0C86CD-DBA9-4330-890C-2863C209B4BB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1B0C86CD-DBA9-4330-890C-2863C209B4BB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B8C3EB9B-D26B-46F7-A2AB-028F6E138D31}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B8C3EB9B-D26B-46F7-A2AB-028F6E138D31}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B8C3EB9B-D26B-46F7-A2AB-028F6E138D31}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B8C3EB9B-D26B-46F7-A2AB-028F6E138D31}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

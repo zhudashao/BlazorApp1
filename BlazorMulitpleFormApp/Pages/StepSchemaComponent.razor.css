@@ -1,0 +1,20 @@
+﻿.step-schema ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+.step-schema li {
+    padding: 10px;
+    font-size: 16px;
+    margin-bottom: 5px;
+}
+
+.valid-step {
+    color: green;
+    font-weight: bold;
+}
+
+.invalid-step {
+    color: red;
+    font-weight: bold;
+}

@@ -1,0 +1,64 @@
+﻿@page "/summary"
+@inject FormManagerService FormManager
+@inject NavigationManager NavigationManager
+
+<h3>Summary of Your Information</h3>
+
+<div class="summary-section">
+    <h4>Step 1: Personal Information</h4>
+    <p><strong>Name:</strong> @FormManager.Step1Service.Data.Name</p>
+    <p><strong>Age:</strong> @FormManager.Step1Service.Data.Age</p>
+</div>
+
+<div class="summary-section">
+    <h4>Step 2:  Address Information</h4>
+    <p><strong>Address :</strong> @FormManager.Step2Service.Data.Address</p>
+    <p><strong>City :</strong> @FormManager.Step2Service.Data.City</p>
+</div>
+
+<div class="summary-section">
+    <h4>Step 3: Additional Information</h4>
+    <p><strong>Company :</strong> @FormManager.Step3Service.Data.Company</p>
+    <p><strong>Position :</strong> @FormManager.Step3Service.Data.Position</p>
+</div>
+
+<div class="summary-section">
+    <h4>Step 4: Comments</h4>
+    <p><strong>Comments :</strong> @FormManager.Step4Service.Data.Comments</p>
+</div>
+
+<div class="summary-actions">
+    <button class="btn btn-primary" @onclick="SubmitForm">Submit</button>
+    <button class="btn btn-secondary" @onclick="GoToPreviousStep">Go Back to Edit</button>
+</div>
+
+@if (IsSubmitted)
+{
+    <div class="alert alert-success">Form submitted successfully!</div>
+}
+
+@code {
+    private bool IsSubmitted = false;
+
+    // Submit the form
+    private async Task SubmitForm()
+    {
+        // Assuming there’s a submission logic in FormManagerService
+        var result = true; //await FormManager.SubmitFormAsync();
+
+        if (result)
+        {
+            IsSubmitted = true;
+        }
+        else
+        {
+            // Handle submission error here
+        }
+    }
+
+    // Go back to the previous step for editing
+    private void GoToPreviousStep()
+    {
+        NavigationManager.NavigateTo("/step4"); 
+    }
+}

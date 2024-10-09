@@ -1,0 +1,24 @@
+﻿@inject FormManagerService FormManager
+
+<div class="step-schema">
+    <ul>
+        <li class="@GetStepStatusClass(FormManager.Step1Service.IsStepValid)">Step 1: @GetStepStatus(FormManager.Step1Service.IsStepValid)</li>
+        <li class="@GetStepStatusClass(FormManager.Step2Service.IsStepValid)">Step 2: @GetStepStatus(FormManager.Step2Service.IsStepValid)</li>
+        <li class="@GetStepStatusClass(FormManager.Step3Service.IsStepValid)">Step 3: @GetStepStatus(FormManager.Step3Service.IsStepValid)</li>
+        <li class="@GetStepStatusClass(FormManager.Step4Service.IsStepValid)">Step 4: @GetStepStatus(FormManager.Step4Service.IsStepValid)</li>
+    </ul>
+</div>
+
+@code {
+    // Returns the appropriate status text for each step
+    private string GetStepStatus(bool isValid)
+    {
+        return isValid ? "Valid" : "Invalid";
+    }
+
+    // Returns the appropriate CSS class to style the step status
+    private string GetStepStatusClass(bool isValid)
+    {
+        return isValid ? "valid-step" : "invalid-step";
+    }
+}

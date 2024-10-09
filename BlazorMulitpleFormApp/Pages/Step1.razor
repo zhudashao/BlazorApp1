@@ -1,0 +1,32 @@
+﻿@page "/step1"
+@inject FormManagerService FormManager
+@inject NavigationManager NavigationManager
+
+
+<h3>Step 1: Personal Information</h3>
+<StepSchemaComponent />
+<label>Name:</label>
+<input type="text" @bind="FormManager.Step1Service.Data.Name" placeholder="Name" />
+
+<label>Age:</label>
+<input type="number" @bind="FormManager.Step1Service.Data.Age" placeholder="Age" />
+
+@if (!FormManager.Step1Service.IsStepValid)
+{
+    <p class="error">Step 1 is not valid</p>
+}
+
+<button class="btn btn-primary" @onclick="ValidateStep1">Next</button>
+
+
+@code {
+    private async Task ValidateStep1()
+    {
+        await FormManager.Step1Service.ValidateStep1();
+        if (FormManager.Step1Service.IsStepValid)
+        {
+            // Proceed to Step 2 or navigate to the next step
+            NavigationManager.NavigateTo("/step2");
+        }
+    }
+}

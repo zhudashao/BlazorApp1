@@ -436,25 +436,48 @@ else if (aggregateObject != null)
 
     #region Popup triggers
 
-    private void ShowAddOrderPopup()
-    {
-        ShowPopup<Order>();
-    }
-
-    private void ShowEditOrderPopup(Order order)
-    {
-        ShowPopup(order);
-    }
-
-    private void ShowAddShipmentPopup()
-    {
-        ShowPopup<Shipment>();
-    }
-
-    private void ShowEditShipmentPopup(Shipment shipment)
-    {
-        ShowPopup(shipment);
-    }
+    private void ShowAddOrderPopup() => ShowPopup<Order>();
+    private void ShowEditOrderPopup(Order order) => ShowPopup(order);
+    private void ShowAddShipmentPopup() => ShowPopup<Shipment>();
+    private void ShowEditShipmentPopup(Shipment shipment) => ShowPopup(shipment);
 
     #endregion
 }
+
+
+ @* public class OrderService
+{
+    private readonly AggregateService _aggregateService;
+
+    public OrderService(AggregateService aggregateService)
+    {
+        _aggregateService = aggregateService;
+    }
+
+    public async Task AddOrder(Order newOrder, AggregateObject aggregateObject)
+    {
+        var addOrderDto = new AddOrderDto { AggregateId = aggregateObject.Id, Order = newOrder };
+        await _aggregateService.AddOrderAsync(addOrderDto);
+        aggregateObject.Orders.Add(newOrder);
+    }
+
+    public async Task EditOrder(Order updatedOrder, AggregateObject aggregateObject)
+    {
+        var modifyOrderDto = new ModifyOrderDto { AggregateId = aggregateObject.Id, Order = updatedOrder };
+        await _aggregateService.ModifyOrderAsync(modifyOrderDto);
+
+        var order = aggregateObject.Orders.FirstOrDefault(o => o.Id == updatedOrder.Id);
+        if (order != null)
+        {
+            order.Description = updatedOrder.Description;
+        }
+    }
+
+    public async Task RemoveOrder(Order order, AggregateObject aggregateObject)
+    {
+        var deleteOrderDto = new DeleteOrderDto { AggregateId = aggregateObject.Id, OrderId = order.Id };
+        await _aggregateService.DeleteOrderAsync(deleteOrderDto);
+        aggregateObject.Orders.Remove(order);
+    }
+}
+ *@

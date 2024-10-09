@@ -1,0 +1,35 @@
+﻿@page "/step3"
+@inject FormManagerService FormManager
+@inject NavigationManager NavigationManager
+
+<h3>Step 3: Additional Information</h3>
+<StepSchemaComponent />
+<label>Input 1:</label>
+<input type="text" @bind="FormManager.Step3Service.Data.Company" placeholder="Company" />
+
+<label>Input 2:</label>
+<input type="text" @bind="FormManager.Step3Service.Data.Position" placeholder="Position" />
+
+@if (!FormManager.Step3Service.IsStepValid)
+{
+    <p class="error">Step 3 is not valid</p>
+}
+
+<button class="btn btn-primary" @onclick="ValidateStep3">Next</button>
+<button class="btn btn-secondary" @onclick="GoToPreviousStep">Go Back to Edit</button>
+
+@code {
+    private async Task ValidateStep3()
+    {
+        await FormManager.Step3Service.ValidateStep3();
+        if (FormManager.Step3Service.IsStepValid)
+        {
+            // Proceed to Step 4 or navigate to the next step
+            NavigationManager.NavigateTo("/step4");
+        }
+    }
+    private void GoToPreviousStep()
+    {
+        NavigationManager.NavigateTo("/step2");
+    }
+}
