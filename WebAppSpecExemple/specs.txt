@@ -1,0 +1,162 @@
+using System;
+using System.Linq;
+using System.Linq.Expressions;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
+
+// Définition de l'interface IApplicationDbContext
+public interface IApplicationDbContext
+{
+    DbSet<User> Users { get; }
+    Task<int> SaveChangesAsync(CancellationToken cancellationToken);
+}
+
+// Implémentation de l'interface dans ApplicationDbContext
+public class ApplicationDbContext : DbContext, IApplicationDbContext
+{
+    public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
+    {
+    }
+
+    public DbSet<User> Users { get; set; }
+
+    public async Task<int> SaveChangesAsync(CancellationToken cancellationToken)
+    {
+        return await base.SaveChangesAsync(cancellationToken);
+    }
+}
+
+// Définition de l'interface ISpecification
+public interface ISpecification<T>
+{
+    Expression<Func<T, bool>> Criteria { get; }
+    Func<IQueryable<T>, IOrderedQueryable<T>> OrderBy { get; }
+    Func<IQueryable<T>, IOrderedQueryable<T>> OrderByDescending { get; }
+    Func<IQueryable<T>, IQueryable<T>> Include { get; }
+    Func<IQueryable<T>, IQueryable<T>> ThenInclude { get; }
+}
+
+// Implémentation de la classe Specification
+public class Specification<T> : ISpecification<T>
+{
+    public Specification(Expression<Func<T, bool>> criteria)
+    {
+        Criteria = criteria;
+    }
+
+    public Expression<Func<T, bool>> Criteria { get; }
+    public Func<IQueryable<T>, IOrderedQueryable<T>> OrderBy { get; private set; }
+    public Func<IQueryable<T>, IOrderedQueryable<T>> OrderByDescending { get; private set; }
+    public Func<IQueryable<T>, IQueryable<T>> Include { get; private set; }
+    public Func<IQueryable<T>, IQueryable<T>> ThenInclude { get; private set; }
+
+    // Méthode pour combiner les critères
+    public Specification<T> And(Specification<T> other)
+    {
+        var combinedCriteria = CombineCriteria(Criteria, other.Criteria, Expression.AndAlso);
+        return new Specification<T>(combinedCriteria);
+    }
+
+    private static Expression<Func<T, bool>> CombineCriteria(
+        Expression<Func<T, bool>> first,
+        Expression<Func<T, bool>> second,
+        Func<Expression, Expression, Expression> merge)
+    {
+        var parameter = Expression.Parameter(typeof(T));
+        var firstBody = Expression.Invoke(first, parameter);
+        var secondBody = Expression.Invoke(second, parameter);
+        var combinedBody = merge(firstBody, secondBody);
+
+        return Expression.Lambda<Func<T, bool>>(combinedBody, parameter);
+    }
+}
+
+// Définition des spécifications pour les utilisateurs
+public class ActiveUserSpecification : Specification<User>
+{
+    public ActiveUserSpecification() : base(u => u.IsActive) { }
+}
+
+public class MemberUserSpecification : Specification<User>
+{
+    public MemberUserSpecification() : base(u => u.IsMember) { }
+}
+
+public class RoleUserSpecification : Specification<User>
+{
+    public RoleUserSpecification(string role) : base(u => u.Role == role) { }
+}
+
+public class SignupDateUserSpecification : Specification<User>
+{
+    public SignupDateUserSpecification(DateTime startDate, DateTime endDate) : 
+        base(u => u.SignupDate >= startDate && u.SignupDate <= endDate) { }
+}
+
+public class ScoreUserSpecification : Specification<User>
+{
+    public ScoreUserSpecification(int minScore) : base(u => u.Score >= minScore) { }
+}
+
+public class VerifiedUserSpecification : Specification<User>
+{
+    public VerifiedUserSpecification() : base(u => u.IsVerified) { }
+}
+
+// Définition de la classe User
+public class User
+{
+    public bool IsActive { get; set; }
+    public bool IsMember { get; set; }
+    public string Role { get; set; }
+    public DateTime SignupDate { get; set; }
+    public int Score { get; set; }
+    public bool IsVerified { get; set; }
+}
+
+// Service pour gérer les utilisateurs
+public class UserService
+{
+    private readonly IApplicationDbContext _context;
+
+    public UserService(IApplicationDbContext context)
+    {
+        _context = context;
+    }
+
+    public IQueryable<User> GetUsers(
+        string specifiedRole = null,
+        DateTime? startDate = null,
+        DateTime? endDate = null,
+        int? minScore = null,
+        bool? isVerified = null)
+    {
+        // Créer les spécifications obligatoires
+        var specification = new ActiveUserSpecification()
+            .And(new MemberUserSpecification());
+
+        // Ajouter les spécifications optionnelles
+        if (!string.IsNullOrEmpty(specifiedRole))
+        {
+            specification = specification.And(new RoleUserSpecification(specifiedRole));
+        }
+
+        if (startDate.HasValue && endDate.HasValue)
+        {
+            specification = specification.And(new SignupDateUserSpecification(startDate.Value, endDate.Value));
+        }
+
+        if (minScore.HasValue)
+        {
+            specification = specification.And(new ScoreUserSpecification(minScore.Value));
+        }
+
+        if (isVerified.HasValue && isVerified.Value)
+        {
+            specification = specification.And(new VerifiedUserSpecification());
+        }
+
+        return _context.Users.Where(specification.Criteria).AsQueryable();
+    }
+}

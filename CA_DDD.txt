@@ -1,0 +1,177 @@
+﻿/MyProject
+├── /src
+│   ├── /MyProject.API              # Couche API (interface utilisateur)
+│   │   ├── Controllers              # Contrôleurs pour gérer les requêtes HTTP
+│   │   │   └── OrderController.cs    # Contrôleur pour gérer les commandes
+│   │   └── ...
+│   ├── /MyProject.Application        # Couche Application (Logique métier)
+│   │   ├── Interfaces                # Interfaces des services d'application
+│   │   │   ├── IOrderApplicationService.cs # Interface pour le service d'application des commandes
+│   │   │   └── ...
+│   │   ├── Services                  # Implémentations des services d'application
+│   │   │   └── OrderApplicationService.cs # Service d'application pour gérer les commandes
+│   │   └── DTOs                     # Objets de transfert de données
+│   │       └── OrderDTO.cs
+│   ├── /MyProject.Domain             # Couche Domain (Modèles de domaine)
+│   │   ├── Entities                  # Entités du domaine
+│   │   │   ├── Order.cs              # Entité Commande
+│   │   │   └── Config.cs             # Entité Configuration
+│   │   ├── ValueObjects              # Objets de valeur
+│   │   ├── Interfaces                # Interfaces pour les services de domaine
+│   │   │   ├── IPriceCalculator.cs    # Interface pour le service de calcul de prix
+│   │   │   ├── IConfigService.cs      # Interface pour le service de configuration
+│   │   │   └── IOrderService.cs       # Interface pour le service de gestion des commandes
+│   │   ├── Services                  # Services de domaine
+│   │   │   ├── PriceCalculatorService.cs  # Implémentation du service de calcul de prix
+│   │   │   └── OrderService.cs       # Service de gestion des commandes
+│   │   └── Specifications            # Spécifications
+│   │       └── ConfigFilterSpecification.cs
+│   ├── /MyProject.Infrastructure      # Couche Infrastructure (Dépendances externes)
+│   │   ├── Data                      # Accès aux données
+│   │   │   └── AppDbContext.cs       # Contexte de la base de données
+│   │   ├── Services                  # Services externes (ex : Clients, Inventaire)
+│   │   │   ├── ClientService.cs      # Service pour interagir avec le service client
+│   │   │   ├── InventoryService.cs    # Service pour interagir avec le service d'inventaire
+│   │   │   └── ConfigService.cs      # Implémentation du service de configuration
+│   │   └── Repositories              # Repositories (optionnel)
+│   └── /tests                        # Tests unitaires et d'intégration
+│       ├── /MyProject.Application.Tests
+│       ├── /MyProject.Domain.Tests
+│       └── /MyProject.Infrastructure.Tests
+└── /README.md
+
+
+
+using System.Threading.Tasks;
+using Domain.Entities;
+using Domain.Interfaces;
+using Domain.Specifications;
+using Microsoft.EntityFrameworkCore;
+
+namespace Infrastructure.Services
+{
+    public class ConfigService : IConfigService
+    {
+        private readonly AppDbContext _context;
+
+        public ConfigService(AppDbContext context)
+        {
+            _context = context;
+        }
+
+        public async Task<Config> GetConfigByIdAsync(int id)
+        {
+            var specification = ConfigFilterSpecification.GetById(id);
+            return await _context.Configs
+                                 .Where(specification)
+                                 .FirstOrDefaultAsync();
+        }
+
+        public async Task<Config> GetConfigByNameAsync(string name)
+        {
+            var specification = ConfigFilterSpecification.GetByName(name);
+            return await _context.Configs
+                                 .Where(specification)
+                                 .FirstOrDefaultAsync();
+        }
+
+        // Autres méthodes...
+    }
+}
+
+using System;
+using System.Linq.Expressions;
+using Domain.Entities;
+
+namespace Domain.Specifications
+{
+    public class ConfigFilterSpecification
+    {
+        public static Expression<Func<Config, bool>> GetById(int id)
+        {
+            return config => config.Id == id;
+        }
+
+        public static Expression<Func<Config, bool>> GetByName(string name)
+        {
+            return config => config.Name.Contains(name);
+        }
+
+        // Vous pouvez ajouter d'autres méthodes de filtrage ici
+    }
+}
+
+
+
+using System;
+using System.Linq;
+using System.Linq.Expressions;
+using Domain.Entities;
+using Domain.Specifications;
+using Xunit;
+
+namespace MyProject.Domain.Tests
+{
+    public class ConfigFilterSpecificationTests
+    {
+        [Fact]
+        public void GetById_ReturnsCorrectPredicate()
+        {
+            // Arrange
+            var id = 1;
+            var predicate = ConfigFilterSpecification.GetById(id);
+            var config = new Config { Id = 1 }; // Exemple de configuration
+
+            // Act
+            var result = predicate.Compile().Invoke(config);
+
+            // Assert
+            Assert.True(result);
+        }
+
+        [Fact]
+        public void GetById_ReturnsFalseForDifferentId()
+        {
+            // Arrange
+            var id = 1;
+            var predicate = ConfigFilterSpecification.GetById(id);
+            var config = new Config { Id = 2 }; // Autre configuration
+
+            // Act
+            var result = predicate.Compile().Invoke(config);
+
+            // Assert
+            Assert.False(result);
+        }
+
+        [Fact]
+        public void GetByName_ReturnsTrueIfNameContainsSubstring()
+        {
+            // Arrange
+            var nameSubstring = "Test";
+            var predicate = ConfigFilterSpecification.GetByName(nameSubstring);
+            var config = new Config { Name = "TestConfig" }; // Exemple de configuration
+
+            // Act
+            var result = predicate.Compile().Invoke(config);
+
+            // Assert
+            Assert.True(result);
+        }
+
+        [Fact]
+        public void GetByName_ReturnsFalseIfNameDoesNotContainSubstring()
+        {
+            // Arrange
+            var nameSubstring = "Test";
+            var predicate = ConfigFilterSpecification.GetByName(nameSubstring);
+            var config = new Config { Name = "Config" }; // Autre configuration
+
+            // Act
+            var result = predicate.Compile().Invoke(config);
+
+            // Assert
+            Assert.False(result);
+        }
+    }
+}

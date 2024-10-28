@@ -15,7 +15,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WebAppSpecExemple", "WebApp
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BlazorApp4AvenantDemoTests", "BlazorApp4AvenantDemoTests\BlazorApp4AvenantDemoTests.csproj", "{1B0C86CD-DBA9-4330-890C-2863C209B4BB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BlazorMulitpleFormApp", "BlazorMulitpleFormApp\BlazorMulitpleFormApp.csproj", "{B8C3EB9B-D26B-46F7-A2AB-028F6E138D31}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BlazorMulitpleFormApp", "BlazorMulitpleFormApp\BlazorMulitpleFormApp.csproj", "{B8C3EB9B-D26B-46F7-A2AB-028F6E138D31}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{FAEDF1D8-8ECE-46C5-B756-B01056BE3B0D}"
+	ProjectSection(SolutionItems) = preProject
+		CA_DDD.txt = CA_DDD.txt
+		onion_architecture.txt = onion_architecture.txt
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

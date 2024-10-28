@@ -2,14 +2,16 @@
 
 public class SpecificationEvaluator<T> where T : class
 {
+   
     public static IQueryable<T> GetQuery(IQueryable<T> inputQuery, BaseSpecification<T> specification)
     {
-        var query = inputQuery;
+        // Apply criteria
+        var query = inputQuery.Where(specification.Criteria);
 
-        // Appliquer les critères (Where)
-        if (specification.Criteria != null)
+        // Apply includes
+        foreach (var include in specification.Includes)
         {
-            query = query.Where(specification.Criteria);
+            query = query.Include(include);
         }
 
         return query;

@@ -1,0 +1,144 @@
+﻿src/
+├── Domain/                        # Couche du domaine métier
+│   ├── Entities/                  # Entités principales du domaine
+│   │   ├── Order.cs               # Entité Order avec Builder et validation
+│   │   ├── Product.cs             # Autres entités...
+│   │   └── Config.cs              # Entité Config pour les configurations de l'application
+│   │
+│   ├── ValueObjects/              # Objets-valeurs
+│   │   └── Address.cs             # Objets-valeurs...
+│   │
+│   ├── Interfaces/                # Interfaces pour les services de configuration et métier
+│   │   ├── IConfigService.cs      # Interface pour accéder aux configurations
+│   │   └── IOrderService.cs       # Interface pour les services de commande (OrderService)
+│   │
+│   ├── Services/                  # Domain Services (logique métier partagée)
+│   │   └── OrderService.cs        # Service de domaine pour Order
+│   │
+│   └── Specifications/            # Specifications métier et filtres
+│       ├── ConfigFilterSpecification.cs   # Filtre de spécification pour Config
+│       └── ProductDiscountSpecification.cs # Exemple pour d'autres entités
+│
+├── Application/                   # Couche des cas d'utilisation et de logique applicative
+│   ├── DTOs/                      # Objets de transfert de données
+│   │   ├── OrderDTO.cs            # DTO pour Order
+│   │   └── ProductDTO.cs          # DTO pour Product
+│   │
+│   ├── Interfaces/                # Interfaces des services applicatifs
+│   │   ├── IOrderApplicationService.cs    # Interface pour OrderApplicationService
+│   │   └── IAppDbContext.cs               # Interface pour le DbContext
+│   │
+│   ├── Services/                  # Application Services pour orchestrer les cas d'usage
+│   │   └── OrderApplicationService.cs     # Implémentation pour orchestrer les commandes
+│   │
+│   └── Mappings/                  # Mappers pour les DTOs
+│       └── OrderMapper.cs                # Mapper de l'entité Order vers OrderDTO
+│
+├── Infrastructure/                # Couche de persistance et services externes
+│   ├── DbContext/                 # Contexte de base de données EF Core
+│   │   └── AppDbContext.cs        # Implémentation du DbContext
+│   │
+│   ├── Repositories/              # Repositories pour accéder aux données, si besoin
+│   │   └── ConfigRepository.cs    # Repository pour les configurations si nécessaire
+│   │
+│   ├── Services/                  # Services d'Infrastructure (implémentations)
+│   │   ├── ConfigService.cs       # Implémentation de IConfigService avec EF Core
+│   │   └── LoggingService.cs      # Exemple pour service de journalisation
+│   │
+│   └── Specifications/            # Specifications dépendantes d'EF Core
+│       └── ProductFilterSpecification.cs # Specification filtrant les produits avec EF Core
+│
+└── WebAPI/                        # Couche d'exposition de l'API
+    ├── Controllers/               # Contrôleurs API pour les endpoints
+    │   └── OrderController.cs     # Controller pour l'entité Order
+    │
+    └── Filters/                   # Filtres globaux (ex: gestion d'erreurs)
+        └── ExceptionFilter.cs     # Gestion d'exceptions au niveau de l'API
+
+
+
+Domain Layer :
+
+Entities : Contient toutes les entités du domaine.
+Interfaces : Définition des interfaces pour les services de domaine comme IConfigService.
+Specifications : Regroupe toutes les spécifications du domaine, dont ConfigFilterSpecification pour filtrer les configurations.
+Application Layer :
+
+DTOs : Définition des objets de transfert de données pour éviter de passer directement les entités du domaine.
+Services : OrderApplicationService.cs coordonne les cas d'utilisation applicatifs et communique avec les services du domaine.
+Interfaces : IAppDbContext et les interfaces des services applicatifs. Cela permet à l'application de dépendre d'abstractions et rend les services de l'application testables indépendamment.
+Infrastructure Layer :
+
+DbContext : Contient le AppDbContext avec les configurations nécessaires.
+Services : ConfigService implémente IConfigService en utilisant Entity Framework pour accéder aux configurations.
+Specifications : Contient les spécifications qui dépendent d'EF Core, comme ProductFilterSpecification pour les produits.
+WebAPI Layer :
+
+Controllers : Expose les entités du domaine via des endpoints API.
+Filters : Centralise la gestion des exceptions et autres préoccupations transversales spécifiques à l'API.
+
+
+
+
+
+// Domain/Specifications/ConfigFilterSpecification.cs
+using System;
+using System.Linq.Expressions;
+
+public class ConfigFilterSpecification
+{
+    public Expression<Func<Config, bool>> Criteria { get; }
+
+    public ConfigFilterSpecification(string key)
+    {
+        Criteria = config => config.Key == key;
+    }
+
+    public ConfigFilterSpecification(string key, string value)
+    {
+        Criteria = config => config.Key == key && config.Value == value;
+    }
+}
+
+
+// Infrastructure/Services/ConfigService.cs
+using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
+
+public class ConfigService : IConfigService
+{
+    private readonly AppDbContext _dbContext;
+
+    public ConfigService(AppDbContext dbContext)
+    {
+        _dbContext = dbContext;
+    }
+
+    public async Task<string?> GetConfigValueAsync(string key)
+    {
+        var specification = new ConfigFilterSpecification(key);
+        var config = await _dbContext.Configs
+            .FirstOrDefaultAsync(specification.Criteria);
+        
+        return config?.Value;
+    }
+
+    public async Task SetConfigValueAsync(string key, string value)
+    {
+        var config = await _dbContext.Configs
+            .FirstOrDefaultAsync(c => c.Key == key);
+
+        if (config != null)
+        {
+            config.Value = value;
+            _dbContext.Configs.Update(config);
+        }
+        else
+        {
+            config = new Config(key, value);
+            await _dbContext.Configs.AddAsync(config);
+        }
+
+        await _dbContext.SaveChangesAsync();
+    }
+}
